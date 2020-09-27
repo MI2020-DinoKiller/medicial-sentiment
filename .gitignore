@@ -1,0 +1,20 @@
+# PyCharm
+.idea/
+__pycache__/
+
+# Virtual Environment
+venv/
+
+# CKIP Data File
+data/
+data.zip
+
+# This project about configture
+config.json
+*.log
+
+# Test for Sentiment
+test/
+
+# IIS Copiopi Ignore Source Code
+*.java

@@ -1,0 +1,6 @@
+{
+    "RABBITMQ":{
+        "HOST": "YOUR_RABBITMQ_HOST",
+        "QUEUENAME": "YOUR_RABBITMQ_QUEUE_NAME"
+    }
+}
