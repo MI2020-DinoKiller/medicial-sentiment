@@ -22,6 +22,8 @@ class CopeOpi:
         return os.path.join(self.data_path, text)
 
     def getOpinionScore(self, obj: dict):
+        if obj["sentence"] is None:
+            return {"score": 0, "eachScore": [0]}
         taskIDGroup: List[str] = list(str(uuid.uuid5(uuid.NAMESPACE_DNS, i)) for i in obj["sentence"])
         eachScore = []
         prev = os.getcwd() # java execute program, maybe can remove

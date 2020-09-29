@@ -15,6 +15,9 @@ class Dictionary(object):
         self.med_positive = set()
         self.med_negative = set()
         self.stop_word = set()
+        self.command_word = {"COLONCATEGORY", "COMMACATEGORY", "DASHCATEGORY", "ETCCATEGORY", "EXCLAMATIONCATEGORY",
+                             "PARENTHESISCATEGORY", "PAUSECATEGORY", "PERIODCATEGORY", "QUESTIONCATEGORY",
+                             "SEMICOLONCATEGORY", "SPCHANGECATEGORY"}
         return
 
     def load(self):
@@ -65,7 +68,6 @@ class Dictionary(object):
                 self.stop_word.add(line)
         logging.info("Read Stop Word File Success")
         return
-
 
     def toCkipDictionary(self):
         total = set()

@@ -45,11 +45,15 @@ def callback(ch, method, properties, body):
     logging.info("[x] Received " + str(obj))
     time_start = time.time()
     ret = sent.judgeSent(question=obj["question"], sentences=obj["sentence"])
-    print(ret["score"])
-    print(ret["eachScore"])
     ret2 = copeopi.getOpinionScore(obj)
+    print(ret["score"])
+    # print(ret["eachScore"])
     print(ret2["score"])
-    print(ret2["eachScore"])
+    # print(ret2["eachScore"])
+    if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
+        for i, element in enumerate(obj["sentence"]):
+            print(element)
+            print(ret["eachScore"][i], ret2["eachScore"][i])
     time_end = time.time()
     logging.info('[*] time cost ' + str(time_end - time_start) + 's')
     logging.info("[*] Done")

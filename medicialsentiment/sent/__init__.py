@@ -24,6 +24,8 @@ class Sent(object):
     def judgeSent(self, question: str, sentences: [str]) -> dict:
         s = self.taggerQuestion(question)
         remainderWords = self.questionToKeyword(question)
+        if sentences is None:
+            return {"score": 0, "eachScore": [0]}
         t = self.tagger(sentences)
         print(t["ws"])
         print(remainderWords)
@@ -41,39 +43,17 @@ class Sent(object):
             if ws[i] in keywords:
                 for d in range(-self.distance, self.distance + 1, 1):
                     delta = 0.0
-                    if d < 0 and 0 <= i + d < n and ws[i + d] not in keywords:
-                        if ws[i + d] in self.myDict.positive:
-                            delta = min(1 / math.pow(d, 2), 0.05)
-                        elif ws[i + d] in self.myDict.med_positive:
-                            delta = min(0.5 / math.pow(d, 2), 0.05)
-                        elif ws[i + d] in self.myDict.negation:
-                            if d < -1:
-                                d += 1
-                                delta = max(-1 / math.pow(d, 2), -0.05)
-                            else:
-                                delta = max(-1 / math.pow(d, 2), -0.05)
-                                d += 1
-                        elif ws[i + d] in self.myDict.negative:
-                            delta = max(-1 / math.pow(d, 2), -0.05)
-                        elif ws[i + d] in self.myDict.med_negative:
-                            delta = max(-0.5 / math.pow(d, 2), -0.05)
-                    elif d != 0 and 0 <= i + d < n and ws[i + d] not in keywords:
-                        delta = 0.0
-                        if ws[i + d] in self.myDict.positive:
+                    if d != 0 and 0 <= i + d < n and ws[i + d] not in keywords:
+                        if ws[i + d] in self.myDict.positive or ws[i + d] in self.myDict.negative:
+                            negationCount = 0
                             delta = 1 / math.pow(d, 2)
-                        elif ws[i + d] in self.myDict.med_positive:
-                            delta = 0.5 / math.pow(d, 2)
-                        elif ws[i + d] in self.myDict.negation:
-                            if d < -1:
-                                d += 1
-                                delta = -1 / math.pow(d, 2)
-                            else:
-                                delta = -1 / math.pow(d, 2)
-                                d += 1
-                        elif ws[i + d] in self.myDict.negative:
-                            delta = -1 / math.pow(d, 2)
-                        elif ws[i + d] in self.myDict.med_negative:
-                            delta = -0.5 / math.pow(d, 2)
+                            for j in range(-1, -self.distance, -1):
+                                if ws[i + d + j] in self.myDict.negation:
+                                    negationCount += 1
+                                elif pos[i + d + j] in self.myDict.command_word:
+                                    break
+                            if negationCount % 2 == 1:
+                                delta = -delta
                     result += delta
                     if debug and delta != 0.0:
                         print(ws[i], ws[i + d], d, delta)
