@@ -15,6 +15,7 @@ class Dictionary(object):
         self.med_positive = set()
         self.med_negative = set()
         self.stop_word = set()
+        self.dictionaryScore = dict()
         self.command_word = {"COLONCATEGORY", "COMMACATEGORY", "DASHCATEGORY", "ETCCATEGORY", "EXCLAMATIONCATEGORY",
                              "PARENTHESISCATEGORY", "PAUSECATEGORY", "PERIODCATEGORY", "QUESTIONCATEGORY",
                              "SEMICOLONCATEGORY", "SPCHANGECATEGORY"}
@@ -30,13 +31,27 @@ class Dictionary(object):
         with open(os.path.join(data_path, "positive.txt"), "r") as fp:
             for line in fp:
                 line = line.strip()
-                self.positive.add(line)
+                sp = line.split(",")
+                if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = int(sp[1])
+                elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = 1
+                else:
+                    logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
+                self.positive.add(sp[0])
         logging.info("Read Positive File Success")
 
         logging.info("Reading Negative File")
         with open(os.path.join(data_path, "negative.txt"), "r") as fp:
             for line in fp:
                 line = line.strip()
+                sp = line.split(",")
+                if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = -int(sp[1])
+                elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = -1
+                else:
+                    logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.negative.add(line)
         logging.info("Read Negative File Success")
 
@@ -51,6 +66,13 @@ class Dictionary(object):
         with open(os.path.join(data_path, "med_positive.txt"), "r") as fp:
             for line in fp:
                 line = line.strip()
+                sp = line.split(",")
+                if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = int(sp[1])
+                elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = 1
+                else:
+                    logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_positive.add(line)
         logging.info("Read Medicial Positive File Success")
 
@@ -58,6 +80,13 @@ class Dictionary(object):
         with open(os.path.join(data_path, "med_negative.txt"), "r") as fp:
             for line in fp:
                 line = line.strip()
+                sp = line.split(",")
+                if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = -int(sp[1])
+                elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
+                    self.dictionaryScore[sp[0]] = -1
+                else:
+                    logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_negative.add(line)
         logging.info("Read Medicial Negative File Success")
 
@@ -67,6 +96,7 @@ class Dictionary(object):
                 line = line.strip()
                 self.stop_word.add(line)
         logging.info("Read Stop Word File Success")
+        self.__loadDic = True
         return
 
     def toCkipDictionary(self):

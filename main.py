@@ -44,7 +44,14 @@ def callback(ch, method, properties, body):
     obj = json.loads(body)
     logging.info("[x] Received " + str(obj))
     time_start = time.time()
-    ret = sent.judgeSent(question=obj["question"], sentences=obj["sentence"])
+    sentence = obj["sentence"]
+    idf_dict = obj["idf_dict"]
+    idf_words = set(obj["idf_words"])
+    idf_sum = float(obj["idf_sum"])
+    print(sentence)
+    print(idf_dict)
+    print(idf_words)
+    print(idf_sum)
     ret2 = copeopi.getOpinionScore(obj)
     print(ret["score"])
     # print(ret["eachScore"])
