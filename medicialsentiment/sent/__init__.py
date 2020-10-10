@@ -39,24 +39,31 @@ class Sent(object):
         2. 找出每個段落 sentences 的態度詞位置
             1. 找到態度詞後，與所有 idf_words 位置相減取得距離
         """
-        # ret = self.judgeSentences(sentences)
+        idf_in_sentences_location = self.findIDFWordsLocation(sentences, idf_words)
+        ret = self.judgeSentences(sentences)
         # return ret
 
     def findIDFWordsLocation(self, sentences: [str], idf_words: set):
-        # TODO: idf 找出每個段落 sentences 的 idf_words 的位置
-        pass
+        ret = []
+        for sentence in sentences:
+            idf_in_sentence = []
+            for counter, char in enumerate(sentence):
+                if char in idf_words:
+                    idf_in_sentence.append(counter)
+            ret.append(idf_in_sentence)
+        return ret
 
-    def judgeSentences(self, sentences: [str]):
+    def judgeSentences(self, sentences: [str], idf_in_sentences_location: [list]):
         score = []
         totalScore = 0.0
-        for i in sentences:
-            ret = self.judgeSentence(i)
+        for counter, sentence in sentences:
+            ret = self.judgeSentence(sentences[counter], idf_in_sentences_location[counter])
             totalScore += ret
             score.append(ret)
         return {"score": totalScore, "eachScore": score}
 
-    def judgeSentence(self, sentence: str) -> float:
-        if str is None:
+    def judgeSentence(self, sentence: str, idf_in_sentence_location) -> float:
+        if sentence is None or idf_in_sentence_location is None:
             return 0.0
         prev_substring = ""
         substring = ""
