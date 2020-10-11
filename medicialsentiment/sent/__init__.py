@@ -9,6 +9,15 @@ from ckiptagger import data_utils, WS, POS, NER
 from ..dictionary import Dictionary
 
 
+def word_distance(st, ed, target) -> float:
+    if target < st:
+        ret = st - target
+    elif target > ed:
+        ret = target - ed
+    else:
+        ret = 1
+    return float(ret)
+
 class Sent(object):
     def __init__(self, ws, pos, ner):
         self.myDict = Dictionary()
@@ -40,8 +49,8 @@ class Sent(object):
             1. 找到態度詞後，與所有 idf_words 位置相減取得距離
         """
         idf_in_sentences_location = self.findIDFWordsLocation(sentences, idf_words)
-        ret = self.judgeSentences(sentences)
-        # return ret
+        ret = self.judgeSentences(sentences, idf_dict, idf_in_sentences_location, idf_sum)
+        return ret
 
     def findIDFWordsLocation(self, sentences: [str], idf_words: set):
         ret = []
@@ -53,42 +62,46 @@ class Sent(object):
             ret.append(idf_in_sentence)
         return ret
 
-    def judgeSentences(self, sentences: [str], idf_in_sentences_location: [list]):
+    def judgeSentences(self, sentences: [str], idf_dict: dict, idf_in_sentences_location: [list], idf_sum: float):
         score = []
         totalScore = 0.0
-        for counter, sentence in sentences:
-            ret = self.judgeSentence(sentences[counter], idf_in_sentences_location[counter])
+        for counter, sentence in enumerate(sentences):
+            ret = self.judgeSentence(sentences[counter], idf_dict, idf_in_sentences_location[counter], idf_sum)
             totalScore += ret
             score.append(ret)
         return {"score": totalScore, "eachScore": score}
 
-    def judgeSentence(self, sentence: str, idf_in_sentence_location) -> float:
+    def judgeSentence(self, sentence: str, idf_dict: dict, idf_in_sentence_location: [int], idf_sum: float) -> float:
         if sentence is None or idf_in_sentence_location is None:
             return 0.0
+        print(sentence)
+        print(idf_in_sentence_location)
+        start_char_index = 0
         prev_substring = ""
         substring = ""
         prev_res = set()
-        res = set()
         score = 0.0
-        # for char in sentence:
-        #     prev_substring = substring
-        #     substring += char
-        #     prev_res = res.copy()
-        #     res = set(filter(lambda x: substring in x, self.myDict.positive))
-        #     res = res.union(set(filter(lambda x: substring in x, self.myDict.negative)))
-        #     res = res.union(set(filter(lambda x: substring in x, self.myDict.med_positive)))
-        #     res = res.union(set(filter(lambda x: substring in x, self.myDict.med_negative)))
-        #     if res:
-        #         pass
-        #     else:
-        #         substring = ""
-        #         if prev_substring != "" and prev_substring in prev_res:
-        #             # print(prev_substring)
-        #             if prev_substring in self.myDict.med_positive or prev_substring in self.myDict.positive:
-        #                 score += 1.0
-        #             elif prev_substring in self.myDict.med_negative or prev_substring in self.myDict.negative:
-        #                 score -= 1.0
-        # return score
+        for counter, char in enumerate(sentence):
+            substring += char
+            res = set(filter(lambda x: substring in x, self.myDict.total_all_words))
+            if res:
+                prev_substring = substring
+                prev_res = res.copy()
+            else:
+                substring = ""
+                if prev_substring != "" and prev_substring in prev_res:
+                    # if self.myDict.is_in_total_all_words(prev_substring):
+                    delta = 0.0
+                    for i in idf_in_sentence_location:
+                        this_word_score = idf_dict[sentence[i]] / idf_sum
+                        this_word_score /= word_distance(start_char_index, counter, i)
+                        delta += this_word_score
+                    delta /= len(idf_in_sentence_location)
+                    delta *= self.myDict.dictionaryScore[prev_substring]
+                    logging.info("%s, %f", prev_substring, delta)
+                    score += delta
+                start_char_index = counter + 1
+        return score
 
     # def evaluationComment(self, keywords: list, ws: list, pos: list, negation: bool = False,
     #                       debug: bool = False) -> float:

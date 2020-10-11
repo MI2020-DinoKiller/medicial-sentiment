@@ -14,6 +14,7 @@ class Dictionary(object):
         self.negation = set()
         self.med_positive = set()
         self.med_negative = set()
+        self.total_all_words = set()
         self.stop_word = set()
         self.dictionaryScore = dict()
         self.command_word = {"COLONCATEGORY", "COMMACATEGORY", "DASHCATEGORY", "ETCCATEGORY", "EXCLAMATIONCATEGORY",
@@ -33,12 +34,13 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = int(sp[1])
+                    self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = 1
+                    self.dictionaryScore[sp[0]] = 1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.positive.add(sp[0])
+            self.total_all_words = self.total_all_words.union(self.positive)
         logging.info("Read Positive File Success")
 
         logging.info("Reading Negative File")
@@ -47,12 +49,13 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -int(sp[1])
+                    self.dictionaryScore[sp[0]] = -float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -1
+                    self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.negative.add(line)
+            self.total_all_words = self.total_all_words.union(self.negative)
         logging.info("Read Negative File Success")
 
         logging.info("Reading Negation File")
@@ -68,12 +71,13 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = int(sp[1])
+                    self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = 1
+                    self.dictionaryScore[sp[0]] = 1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_positive.add(line)
+            self.total_all_words = self.total_all_words.union(self.med_positive)
         logging.info("Read Medicial Positive File Success")
 
         logging.info("Reading Medicial Negative File")
@@ -82,12 +86,13 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -int(sp[1])
+                    self.dictionaryScore[sp[0]] = -float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -1
+                    self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_negative.add(line)
+            self.total_all_words = self.total_all_words.union(self.med_negative)
         logging.info("Read Medicial Negative File Success")
 
         logging.info("Reading Stop Word File")
@@ -106,3 +111,6 @@ class Dictionary(object):
         res = dict.fromkeys(total, 1)
         s = construct_dictionary(res)
         return s
+
+    def is_in_total_all_words(self, find_word):
+        return find_word in self.total_all_words
