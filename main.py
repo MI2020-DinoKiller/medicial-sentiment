@@ -44,26 +44,25 @@ def callback(ch, method, properties, body):
     obj = json.loads(body)
     logging.info("[x] Received " + str(obj))
     time_start = time.time()
-    sentence = obj["sentence"]
+    sentences = obj["sentence"]
     idf_dict = obj["idf_dict"]
     idf_words = set(obj["idf_words"])
     idf_sum = float(obj["idf_sum"])
-    print(sentence)
-    print(idf_dict)
-    print(idf_words)
-    print(idf_sum)
+    ret = sent.judgeSent(sentences=sentences, idf_words=idf_words, idf_dict=idf_dict, idf_sum=idf_sum)
     ret2 = copeopi.getOpinionScore(obj)
     print(ret["score"])
-    # print(ret["eachScore"])
-    print(ret2["score"])
+    print(ret["eachScore"])
+    for counter, sentence in enumerate(sentences):
+        print(ret["eachScore"][counter], ":", sentence)
+    # print(ret2["score"])
     # print(ret2["eachScore"])
-    if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
-        for i, element in enumerate(obj["sentence"]):
-            print(element)
-            print(ret["eachScore"][i], ret2["eachScore"][i])
-    time_end = time.time()
-    logging.info('[*] time cost ' + str(time_end - time_start) + 's')
-    logging.info("[*] Done")
+    # if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
+    #     for i, element in enumerate(obj["sentence"]):
+    #         print(element)
+    #         print(ret["eachScore"][i], ret2["eachScore"][i])
+    # time_end = time.time()
+    # logging.info('[*] time cost ' + str(time_end - time_start) + 's')
+    # logging.info("[*] Done")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 

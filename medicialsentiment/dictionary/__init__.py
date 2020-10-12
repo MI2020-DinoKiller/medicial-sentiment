@@ -54,7 +54,7 @@ class Dictionary(object):
                     self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
-                self.negative.add(line)
+                self.negative.add(sp[0])
             self.total_all_words = self.total_all_words.union(self.negative)
         logging.info("Read Negative File Success")
 
@@ -76,7 +76,7 @@ class Dictionary(object):
                     self.dictionaryScore[sp[0]] = 1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
-                self.med_positive.add(line)
+                self.med_positive.add(sp[0])
             self.total_all_words = self.total_all_words.union(self.med_positive)
         logging.info("Read Medicial Positive File Success")
 
@@ -91,7 +91,7 @@ class Dictionary(object):
                     self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
-                self.med_negative.add(line)
+                self.med_negative.add(sp[0])
             self.total_all_words = self.total_all_words.union(self.med_negative)
         logging.info("Read Medicial Negative File Success")
 
