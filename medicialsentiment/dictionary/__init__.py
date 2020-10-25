@@ -29,7 +29,7 @@ class Dictionary(object):
         logging.info("Dictionary loading...")
 
         logging.info("Reading Positive File")
-        with open(os.path.join(data_path, "positive.txt"), "r") as fp:
+        with open(os.path.join(data_path, "positive.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 sp = line.split(",")
@@ -44,7 +44,7 @@ class Dictionary(object):
         logging.info("Read Positive File Success")
 
         logging.info("Reading Negative File")
-        with open(os.path.join(data_path, "negative.txt"), "r") as fp:
+        with open(os.path.join(data_path, "negative.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 sp = line.split(",")
@@ -59,14 +59,14 @@ class Dictionary(object):
         logging.info("Read Negative File Success")
 
         logging.info("Reading Negation File")
-        with open(os.path.join(data_path, "negation.txt"), "r") as fp:
+        with open(os.path.join(data_path, "negation.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 self.negation.add(line)
         logging.info("Read Negation File Success")
 
         logging.info("Reading Medicial Positive File")
-        with open(os.path.join(data_path, "med_positive.txt"), "r") as fp:
+        with open(os.path.join(data_path, "med_positive.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 sp = line.split(",")
@@ -81,7 +81,7 @@ class Dictionary(object):
         logging.info("Read Medicial Positive File Success")
 
         logging.info("Reading Medicial Negative File")
-        with open(os.path.join(data_path, "med_negative.txt"), "r") as fp:
+        with open(os.path.join(data_path, "med_negative.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 sp = line.split(",")
@@ -96,7 +96,7 @@ class Dictionary(object):
         logging.info("Read Medicial Negative File Success")
 
         logging.info("Reading Stop Word File")
-        with open(os.path.join(data_path, "stop_word.txt"), "r") as fp:
+        with open(os.path.join(data_path, "stop_word.txt"), "r", encoding="utf-8") as fp:
             for line in fp:
                 line = line.strip()
                 self.stop_word.add(line)
