@@ -2,10 +2,6 @@ import logging
 import os
 import math
 
-import jieba
-import gdown
-from ckiptagger import data_utils, WS, POS, NER
-
 from ..dictionary import Dictionary
 
 
@@ -19,12 +15,13 @@ def word_distance(st, ed, target) -> float:
     return float(ret)
 
 class Sent(object):
-    def __init__(self, ws, pos, ner):
+    # def __init__(self, ws, pos, ner):
+    def __init__(self):
         self.myDict = Dictionary()
         self.myDict.load()
-        self.ws = ws
-        self.pos = pos
-        self.ner = ner
+        # self.ws = ws
+        # self.pos = pos
+        # self.ner = ner
         self.distance = 10
         return
 
@@ -37,12 +34,12 @@ class Sent(object):
         idf_sum = IDF 重要詞總和分數
     Output:
         score = 總分
-        eachScore = 文章每一段句子各個分數
+        each_score = 文章每一段句子各個分數
     """
 
     def judgeSent(self, sentences: [str], idf_words: set, idf_dict: dict, idf_sum: float) -> dict:
         if sentences is None:
-            return {"score": 0, "eachScore": [0]}
+            return {"score": 0, "each_score": [0]}
         """
         1. idf 找出每個段落 sentences 的 idf_words 的位置
         2. 找出每個段落 sentences 的態度詞位置
@@ -69,7 +66,7 @@ class Sent(object):
             ret = self.judgeSentence(sentences[counter], idf_dict, idf_in_sentences_location[counter], idf_sum)
             totalScore += ret
             score.append(ret)
-        return {"score": totalScore, "eachScore": score}
+        return {"score": totalScore, "each_score": score}
 
     def judgeSentence(self, sentence: str, idf_dict: dict, idf_in_sentence_location: [int], idf_sum: float) -> float:
         if sentence is None or idf_in_sentence_location is None:
@@ -91,8 +88,8 @@ class Sent(object):
             substring += char
             res = set(filter(lambda x: substring in x, self.myDict.total_all_words))
             logging.debug("Now Substring %s", substring)
-            logging.debug("Result %s", res.__str__())
             if res:
+                logging.debug("Result %s", res.__str__())
                 prev_substring = substring
                 prev_res = res.copy()
             else:

@@ -9,8 +9,8 @@ from medicialsentiment.copeopi import CopeOpi
 from ckiptagger import data_utils, WS, POS, NER
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
-logging.basicConfig(level=logging.INFO, filename='myLog.log', filemode='w', format=FORMAT)
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+logging.basicConfig(level=logging.DEBUG, filename='myLog.log', filemode='w', format=FORMAT)
+# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 logging.info("Loading config.json......")
 dataPath = os.path.dirname(os.path.abspath(__file__))
@@ -50,16 +50,20 @@ def callback(ch, method, properties, body):
     idf_sum = float(obj["idf_sum"])
     ret = sent.judgeSent(sentences=sentences, idf_words=idf_words, idf_dict=idf_dict, idf_sum=idf_sum)
     ret2 = copeopi.getOpinionScore(obj)
-    print(ret["score"])
-    print(ret["eachScore"])
-    for counter, sentence in enumerate(sentences):
-        print(ret["eachScore"][counter], ":", sentence)
+    if sentences is not None:
+        print(ret["score"], ret2["score"])
+        print(obj["url"])
+        for counter, sentence in enumerate(sentences):
+            print(ret["each_score"][counter], ret2["each_score"][counter], ":", sentence)
+        print()
+        print("=" * 10)
+        print()
     # print(ret2["score"])
-    # print(ret2["eachScore"])
+    # print(ret2["each_score"])
     # if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
     #     for i, element in enumerate(obj["sentence"]):
     #         print(element)
-    #         print(ret["eachScore"][i], ret2["eachScore"][i])
+    #         print(ret["each_score"][i], ret2["each_score"][i])
     # time_end = time.time()
     # logging.info('[*] time cost ' + str(time_end - time_start) + 's')
     # logging.info("[*] Done")

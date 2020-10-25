@@ -23,12 +23,12 @@ class CopeOpi:
 
     def getOpinionScore(self, obj: dict):
         if obj["sentence"] is None:
-            return {"score": 0, "eachScore": [0]}
-        taskIDGroup: List[str] = list(str(uuid.uuid5(uuid.NAMESPACE_DNS, i)) for i in obj["sentence"])
-        eachScore = []
-        prev = os.getcwd() # java execute program, maybe can remove
-        os.chdir(self.data_path) # java execute program, maybe can remove
-        for i, element in enumerate(taskIDGroup):
+            return {"score": 0, "each_score": [0]}
+        task_id_group: List[str] = list(str(uuid.uuid5(uuid.NAMESPACE_DNS, i)) for i in obj["sentence"])
+        each_score = []
+        prev = os.getcwd()  # java execute program, maybe can remove
+        os.chdir(self.data_path)  # java execute program, maybe can remove
+        for i, element in enumerate(task_id_group):
             sentence_list = obj["sentence"][i]
             word_sentence_list = self.ws([sentence_list])
             pos_sentence_list = self.pos(word_sentence_list)
@@ -39,21 +39,23 @@ class CopeOpi:
                     print(f"{word}({pos})", end=" ", file=fileop)
                 return
 
-            with open(self.dataFilePath(taskIDGroup[i] + ".txt"), "w", encoding="utf-8") as op:
+            with open(self.dataFilePath(task_id_group[i] + ".txt"), "w", encoding="utf-8") as op:
                 print_word_pos_sentence(word_sentence_list[0], pos_sentence_list[0], op)
                 print(file=op)
-            subprocess.run(["java", "-cp", "./opinion/*.jar:.", "CopeOpi_trad", self.dataFilePath(taskIDGroup[i])])
-            with open(self.dataFilePath(taskIDGroup[i] + ".csv")) as csvFile:
+            subprocess.run(["java", "-cp", "./opinion/*.jar:.", "CopeOpi_trad", self.dataFilePath(task_id_group[i])])
+            with open(self.dataFilePath(task_id_group[i] + ".csv")) as csvFile:
                 rows = csv.reader(csvFile, delimiter=',')
                 rows = list(rows)
                 try:
-                    eachScore.append(float(rows[0][1]))
+                    each_score.append(float(rows[0][1]))
                 except IndexError:
                     print("WTF???")
-            subprocess.run(["rm", self.dataFilePath(taskIDGroup[i] + ".csv"), self.dataFilePath(taskIDGroup[i] + ".txt")])
-        os.chdir(prev) # java execute program, maybe can remove
+            subprocess.run(["rm", self.dataFilePath(task_id_group[i] + ".csv"), self.dataFilePath(task_id_group[i] + ".txt")])
+        os.chdir(prev)  # java execute program, maybe can remove
         total = 0.0
-        for i in eachScore:
+        for i in each_score:
             total += i
-        total /= len(eachScore)
-        return {"score": total, "eachScore": eachScore}
+        if len(each_score) == 0:
+            return {"score": 0.0, "each_score": [0.0]}
+        total /= len(each_score)
+        return {"score": total, "each_score": each_score}
