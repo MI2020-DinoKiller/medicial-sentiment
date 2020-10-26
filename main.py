@@ -28,7 +28,7 @@ pos = POS("./data")
 ner = NER("./data")
 logging.info("Load CKIP Package Success!")
 
-sent = Sent(ws, pos, ner)
+sent = Sent()
 copeopi = CopeOpi(ws, pos, ner)
 
 logging.info('[*] Connecting RabbitMQ......')
@@ -49,15 +49,23 @@ def callback(ch, method, properties, body):
     idf_words = set(obj["idf_words"])
     idf_sum = float(obj["idf_sum"])
     ret = sent.judgeSent(sentences=sentences, idf_words=idf_words, idf_dict=idf_dict, idf_sum=idf_sum)
-    ret2 = copeopi.getOpinionScore(obj)
     if sentences is not None:
-        print(ret["score"], ret2["score"])
+        print(ret["score"])
         print(obj["url"])
         for counter, sentence in enumerate(sentences):
-            print(ret["each_score"][counter], ret2["each_score"][counter], ":", sentence)
+            print(ret["each_score"][counter], ":", sentence)
         print()
         print("=" * 10)
         print()
+    # ret2 = copeopi.getOpinionScore(obj)
+    # if sentences is not None:
+    #     print(ret["score"], ret2["score"])
+    #     print(obj["url"])
+    #     for counter, sentence in enumerate(sentences):
+    #         print(ret["each_score"][counter], ret2["each_score"][counter], ":", sentence)
+    #     print()
+    #     print("=" * 10)
+    #     print()
     # print(ret2["score"])
     # print(ret2["each_score"])
     # if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
