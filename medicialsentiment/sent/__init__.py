@@ -1,6 +1,4 @@
 import logging
-import os
-import math
 
 from ..dictionary import Dictionary
 
@@ -13,6 +11,7 @@ def word_distance(st, ed, target) -> float:
     else:
         ret = 1
     return float(ret)
+
 
 class Sent(object):
     # def __init__(self, ws, pos, ner):
@@ -92,12 +91,15 @@ class Sent(object):
                 logging.debug("Result %s", res.__str__())
                 prev_substring = substring
                 prev_res = res.copy()
+                counter += 1
             else:
                 if len(substring) > 1:
                     counter -= 1
                 substring = ""
                 if prev_substring != "" and prev_substring in prev_res:
                     delta = 0.0
+                    # print(start_char_index, counter, sentence[start_char_index:counter + 1], prev_substring)
+                    # assert(sentence[start_char_index:counter + 1] == prev_substring)
                     for i in idf_in_sentence_location:
                         this_word_score = idf_dict[sentence[i]] / idf_sum
                         this_word_score /= word_distance(start_char_index, counter, i)
@@ -108,8 +110,9 @@ class Sent(object):
                     score += delta
                 prev_substring = ""
                 prev_res = set()
+                counter += 1
                 start_char_index = counter
-            counter += 1
+
         return score
 
     def isNegative(self, score: float):
