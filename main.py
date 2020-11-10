@@ -9,7 +9,7 @@ from medicialsentiment.copeopi import CopeOpi
 from ckiptagger import data_utils, WS, POS, NER
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
-logging.basicConfig(level=logging.DEBUG, filename='myLog.log', filemode='w', format=FORMAT)
+logging.basicConfig(level=logging.INFO, filename='myLog.log', filemode='w', format=FORMAT)
 # logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 logging.info("Loading config.json......")
@@ -48,7 +48,7 @@ def callback(ch, method, properties, body):
     idf_dict = obj["idf_dict"]
     idf_words = set(obj["idf_words"])
     idf_sum = float(obj["idf_sum"])
-    ret = sent.judgeSent(sentences=sentences, idf_words=idf_words, idf_dict=idf_dict, idf_sum=idf_sum)
+    ret = sent.judge_sent(sentences=sentences, idf_words=idf_words, idf_dict=idf_dict, idf_sum=idf_sum)
     if sentences is not None:
         print(ret["score"])
         print(obj["url"])
