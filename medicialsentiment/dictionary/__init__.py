@@ -49,9 +49,9 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -float(sp[1])
+                    self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -1.0
+                    self.dictionaryScore[sp[0]] = 1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.negative.add(sp[0])
@@ -86,9 +86,9 @@ class Dictionary(object):
                 line = line.strip()
                 sp = line.split(",")
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -float(sp[1])
+                    self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = -1.0
+                    self.dictionaryScore[sp[0]] = 1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_negative.add(sp[0])
