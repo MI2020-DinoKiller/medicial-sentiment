@@ -42,8 +42,7 @@ logging.info('[*] Waiting for messages. To exit press CTRL+C')
 def callback(ch, method, properties, body):
     body = body.decode("utf-8")
     obj = json.loads(body)
-    logging.info("[x] Received " + str(obj))
-    time_start = time.time()
+    logging.debug("[x] Received " + str(obj))
     query_string = obj["query_string"]
     sentences = obj["sentence"]
     idf_dict = obj["idf_dict"]
@@ -51,14 +50,6 @@ def callback(ch, method, properties, body):
     idf_sum = float(obj["idf_sum"])
     ret = sent.judge_sent(query_string=query_string, sentences=sentences, idf_words=idf_words,
                           idf_dict=idf_dict, idf_sum=idf_sum)
-    # if sentences is not None:
-    #     print(ret["score"])
-    #     print(obj["url"])
-    #     for counter, sentence in enumerate(sentences):
-    #         print(ret["each_score"][counter], ":", sentence)
-    #     print()
-    #     print("=" * 10)
-    #     print()
     ret2 = copeopi.getOpinionScore(obj)
     if sentences is not None:
         print(ret["score"], ret2["score"])
@@ -68,18 +59,21 @@ def callback(ch, method, properties, body):
         print()
         print("=" * 10)
         print()
-    # print(ret2["score"])
-    # print(ret2["each_score"])
-    # if (ret["score"] < 0 < ret2["score"]) or (ret["score"] > 0 > ret2["score"]):
-    #     for i, element in enumerate(obj["sentence"]):
-    #         print(element)
-    #         print(ret["each_score"][i], ret2["each_score"][i])
-    # time_end = time.time()
-    # logging.info('[*] time cost ' + str(time_end - time_start) + 's')
-    # logging.info("[*] Done")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(CONFIG["RABBITMQ"]["QUEUENAME"], callback)
 channel.start_consuming()
+
+# def test(body):
+#     obj = json.loads(body)
+#     logging.info("[x] Received " + str(obj))
+#     query_string = obj["query_string"]
+#     sentences = obj["sentence"]
+#     idf_dict = obj["idf_dict"]
+#     idf_words = set(obj["idf_words"])
+#     idf_sum = float(obj["idf_sum"])
+#     ret = sent.judge_sent(query_string=query_string, sentences=sentences, idf_words=idf_words,
+#                           idf_dict=idf_dict, idf_sum=idf_sum)
+#     ret2 = copeopi.getOpinionScore(obj)

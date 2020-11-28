@@ -1,6 +1,6 @@
 import os
 import logging
-from ckiptagger import construct_dictionary
+# from ckiptagger import construct_dictionary
 
 data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -18,9 +18,6 @@ class Dictionary(object):
         self.total_med_all_words = set()
         self.stop_word = set()
         self.dictionaryScore = dict()
-        self.command_word = {"COLONCATEGORY", "COMMACATEGORY", "DASHCATEGORY", "ETCCATEGORY", "EXCLAMATIONCATEGORY",
-                             "PARENTHESISCATEGORY", "PAUSECATEGORY", "PERIODCATEGORY", "QUESTIONCATEGORY",
-                             "SEMICOLONCATEGORY", "SPCHANGECATEGORY"}
         return
 
     def load(self):
@@ -52,7 +49,7 @@ class Dictionary(object):
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
                     self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = 1.0
+                    self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.negative.add(sp[0])
@@ -91,7 +88,7 @@ class Dictionary(object):
                 if len(sp) == 2 and self.dictionaryScore.get(sp[0]) is None:
                     self.dictionaryScore[sp[0]] = float(sp[1])
                 elif len(sp) == 1 and self.dictionaryScore.get(sp[0]) is None:
-                    self.dictionaryScore[sp[0]] = 1.0
+                    self.dictionaryScore[sp[0]] = -1.0
                 else:
                     logging.warning("There is some voc duplicate %s: %d", sp[0], self.dictionaryScore.get(sp[0]))
                 self.med_negative.add(sp[0])
@@ -108,13 +105,13 @@ class Dictionary(object):
         self.__loadDic = True
         return
 
-    def to_ckip_dictionary(self):
-        total = set()
-        total = total.union(self.med_positive)
-        total = total.union(self.med_negative)
-        res = dict.fromkeys(total, 1)
-        s = construct_dictionary(res)
-        return s
+    # def to_ckip_dictionary(self):
+    #     total = set()
+    #     total = total.union(self.med_positive)
+    #     total = total.union(self.med_negative)
+    #     res = dict.fromkeys(total, 1)
+    #     s = construct_dictionary(res)
+    #     return s
 
     def is_in_total_all_words(self, find_word):
         return find_word in self.total_all_words

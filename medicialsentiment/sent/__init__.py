@@ -14,15 +14,11 @@ def word_distance(st, ed, target) -> float:
 
 
 class Sent(object):
-    # def __init__(self, ws, pos, ner):
     def __init__(self):
         self.myDict = Dictionary()
         self.myDict.load()
         self.except_med_words = set()
-        # self.ws = ws
-        # self.pos = pos
-        # self.ner = ner
-        # self.distance = 10
+        self.distance = 3
         return
 
     """
@@ -51,7 +47,7 @@ class Sent(object):
         self.find_query_string_has_med_word(query_string=query_string)
         # 計算本文章的分數
         ret = self.judge_sentences(sentences, idf_dict, idf_in_sentences_location, idf_sum)
-        self.except_med_words = set() # 回復原本
+        self.except_med_words = set()  # 回復原本
         return ret
 
     def find_idf_words_location(self, sentences: [str], idf_words: set):
@@ -89,7 +85,6 @@ class Sent(object):
             counter += 1
         return
 
-
     def judge_sentences(self, sentences: [str], idf_dict: dict, idf_in_sentences_location: [list], idf_sum: float):
         score = []
         total_score = 0.0
@@ -102,34 +97,49 @@ class Sent(object):
     def judge_sentence(self, sentence: str, idf_dict: dict, idf_in_sentence_location: [int], idf_sum: float) -> float:
         if sentence is None or idf_in_sentence_location is None:
             return 0.0
-        start_char_index = 0
+        start_char_index = 0  # 初始化字詞抓取位置
+        score = 0.0  # 句子分數初始化
+        words_in_sentence_index = []
         prev_substring = ""
         substring = ""
         prev_res = set()
-        score = 0.0
-        tmp_score = 0.0
+        # tmp_score = 0.0
         logging.info("Now Sentence is %s:", sentence)
-        counter = 0
-        len_limit = len(sentence)
+        counter = 0  # 目前 Index 位置
+        len_limit = len(sentence)  # Sentence 長度
         while counter < len_limit:
             char = sentence[counter]
             if char == '?' or char == '？':  # 標點符號判斷：問句
-                tmp_score = 0.0
+                # tmp_score = 0.0
                 substring = ""
                 prev_substring = ""
                 prev_res = set()
+                words_in_sentence_index.clear()
                 counter += 1
             elif char == '。' or char == '，' or char == '！' or char == '!' or char == ',':  # 標點符號，代表一句話結束
                 substring = ""
                 if prev_substring != "" and prev_substring in prev_res:
                     delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
                                                    counter, idf_in_sentence_location)  # 將剛剛結果的詞作分數計算
-                    tmp_score += delta  # 分數加入
+                    if len(words_in_sentence_index) >= 1:
+                        take_tuple = words_in_sentence_index[-1]
+                        if start_char_index - take_tuple[1] <= self.distance:
+                            if delta < 0 and take_tuple[2] < 0:  # - -
+                                delta = -delta
+                                words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                            elif delta > 0 and take_tuple[2] < 0:  # + -
+                                delta = -delta
+                            elif delta < 0 and take_tuple[2] > 0:
+                                words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                    # tmp_score += delta  # 分數加入
+                    words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
                 prev_substring = ""
                 prev_res = set()
-                score += tmp_score  # 暫存分數加入句子分數
-                tmp_score = 0.0  # 並且歸零
+                # score += tmp_score  # 暫存分數加入句子分數
+                # tmp_score = 0.0  # 並且歸零
+                score += self.scoring_tmp_score(words_in_sentence_index)
                 counter += 1
+                words_in_sentence_index.clear()
                 start_char_index = counter
             else:  # 如果不是碰到標點符號
                 substring += char
@@ -144,7 +154,18 @@ class Sent(object):
                     if prev_substring != "" and prev_substring in prev_res:
                         delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
                                                        counter, idf_in_sentence_location)
-                        tmp_score += delta
+                        if len(words_in_sentence_index) >= 1:
+                            take_tuple = words_in_sentence_index[-1]
+                            if start_char_index - take_tuple[1] <= self.distance:
+                                if delta < 0 and take_tuple[2] < 0:  # - -
+                                    delta = -delta
+                                    words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                                elif delta > 0 and take_tuple[2] < 0:  # + -
+                                    delta = -delta
+                                elif delta < 0 and take_tuple[2] > 0:
+                                    words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                        # tmp_score += delta
+                        words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
                         counter = start_char_index + len(prev_substring) - 1
                     elif len(substring) >= 1:
                         counter = start_char_index
@@ -153,11 +174,19 @@ class Sent(object):
                     prev_res = set()
                     counter += 1
                     start_char_index = counter
-        score += tmp_score
+        # score += tmp_score
+        score += self.scoring_tmp_score(words_in_sentence_index)
         return score
 
-    def single_word_score(self, sentence, prev_substring, idf_dict, idf_sum, start_char_index, counter,
-                          idf_in_sentence_location):
+    def scoring_tmp_score(self, words_in_sentence_index):
+        total = 0.0
+        for element in words_in_sentence_index:
+            logging.info("%s, %f", element[3], element[2])
+            total += element[2]
+        return total
+
+    def single_word_score(self, sentence: str, prev_substring: str, idf_dict: dict, idf_sum: float,
+                          start_char_index: int, counter: int, idf_in_sentence_location: [int]):
         delta = 0.0
         if prev_substring in self.except_med_words:
             return 0.0
@@ -172,5 +201,5 @@ class Sent(object):
         logging.debug("Distances: %s", distances.__str__())
         delta /= len(idf_in_sentence_location)
         delta *= self.myDict.dictionaryScore[prev_substring]
-        logging.info("%s, %f", prev_substring, delta)
+
         return delta
