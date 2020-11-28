@@ -99,7 +99,7 @@ class Sent(object):
             return 0.0
         start_char_index = 0  # 初始化字詞抓取位置
         score = 0.0  # 句子分數初始化
-        words_in_sentence_index = []
+        words_in_sentence_index: [WordScore] = []
         prev_substring = ""
         substring = ""
         prev_res = set()
@@ -130,6 +130,7 @@ class Sent(object):
                     #         elif delta < 0 and take_tuple[2] > 0:
                     #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
                     # words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
+                    words_in_sentence_index.append(WordScore(start_char_index, counter, prev_substring, delta))
                 prev_substring = ""
                 prev_res = set()
                 score += self.scoring_tmp_score(words_in_sentence_index)
@@ -172,11 +173,13 @@ class Sent(object):
         score += self.scoring_tmp_score(words_in_sentence_index)
         return score
 
-    def scoring_tmp_score(self, words_in_sentence_index):
+    def scoring_tmp_score(self, words_in_sentence_index: [WordScore]):
         total = 0.0
         for element in words_in_sentence_index:
-            logging.info("%s, %f", element[3], element[2])
-            total += element[2]
+            logging.info("%s, %f", element.get_word(), element.get_score())
+            total += element.get_score()
+            # logging.info("%s, %f", element[3], element[2])
+            # total += element[2]
         return total
 
     def single_word_score(self, sentence: str, prev_substring: str, idf_dict: dict, idf_sum: float,

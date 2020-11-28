@@ -21,6 +21,9 @@ class WordScore(object):
     def has_change(self):
         return self.__change
 
+    def get_word(self):
+        return self.__word
+
     def get_score(self):
         return self.__score
 
