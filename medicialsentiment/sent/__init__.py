@@ -1,6 +1,7 @@
 import logging
 
 from ..dictionary import Dictionary
+from ..word_score import WordScore
 
 
 def word_distance(st, ed, target) -> float:
@@ -73,7 +74,6 @@ class Sent(object):
             if res:
                 prev_substring = substring
                 prev_res = res.copy()
-
             else:
                 if len(substring) > 1:
                     counter -= 1
@@ -103,14 +103,12 @@ class Sent(object):
         prev_substring = ""
         substring = ""
         prev_res = set()
-        # tmp_score = 0.0
         logging.info("Now Sentence is %s:", sentence)
         counter = 0  # 目前 Index 位置
         len_limit = len(sentence)  # Sentence 長度
         while counter < len_limit:
             char = sentence[counter]
             if char == '?' or char == '？':  # 標點符號判斷：問句
-                # tmp_score = 0.0
                 substring = ""
                 prev_substring = ""
                 prev_res = set()
@@ -121,22 +119,19 @@ class Sent(object):
                 if prev_substring != "" and prev_substring in prev_res:
                     delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
                                                    counter, idf_in_sentence_location)  # 將剛剛結果的詞作分數計算
-                    if len(words_in_sentence_index) >= 1:
-                        take_tuple = words_in_sentence_index[-1]
-                        if start_char_index - take_tuple[1] <= self.distance:
-                            if delta < 0 and take_tuple[2] < 0:  # - -
-                                delta = -delta
-                                words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                            elif delta > 0 and take_tuple[2] < 0:  # + -
-                                delta = -delta
-                            elif delta < 0 and take_tuple[2] > 0:
-                                words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                    # tmp_score += delta  # 分數加入
-                    words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
+                    # if len(words_in_sentence_index) >= 1:
+                    #     take_tuple = words_in_sentence_index[-1]
+                    #     if start_char_index - take_tuple[1] <= self.distance:
+                    #         if delta < 0 and take_tuple[2] < 0:  # - -
+                    #             delta = -delta
+                    #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                    #         elif delta > 0 and take_tuple[2] < 0:  # + -
+                    #             delta = -delta
+                    #         elif delta < 0 and take_tuple[2] > 0:
+                    #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                    # words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
                 prev_substring = ""
                 prev_res = set()
-                # score += tmp_score  # 暫存分數加入句子分數
-                # tmp_score = 0.0  # 並且歸零
                 score += self.scoring_tmp_score(words_in_sentence_index)
                 counter += 1
                 words_in_sentence_index.clear()
@@ -154,18 +149,18 @@ class Sent(object):
                     if prev_substring != "" and prev_substring in prev_res:
                         delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
                                                        counter, idf_in_sentence_location)
-                        if len(words_in_sentence_index) >= 1:
-                            take_tuple = words_in_sentence_index[-1]
-                            if start_char_index - take_tuple[1] <= self.distance:
-                                if delta < 0 and take_tuple[2] < 0:  # - -
-                                    delta = -delta
-                                    words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                                elif delta > 0 and take_tuple[2] < 0:  # + -
-                                    delta = -delta
-                                elif delta < 0 and take_tuple[2] > 0:
-                                    words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                        # tmp_score += delta
-                        words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
+                        # if len(words_in_sentence_index) >= 1:
+                        #     take_tuple = words_in_sentence_index[-1]
+                        #     if start_char_index - take_tuple[1] <= self.distance:
+                        #         if delta < 0 and take_tuple[2] < 0:  # - -
+                        #             delta = -delta
+                        #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                        #         elif delta > 0 and take_tuple[2] < 0:  # + -
+                        #             delta = -delta
+                        #         elif delta < 0 and take_tuple[2] > 0:
+                        #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
+                        # words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
+                        words_in_sentence_index.append(WordScore(start_char_index, counter, prev_substring, delta))
                         counter = start_char_index + len(prev_substring) - 1
                     elif len(substring) >= 1:
                         counter = start_char_index
@@ -174,7 +169,6 @@ class Sent(object):
                     prev_res = set()
                     counter += 1
                     start_char_index = counter
-        # score += tmp_score
         score += self.scoring_tmp_score(words_in_sentence_index)
         return score
 
