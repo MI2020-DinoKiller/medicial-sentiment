@@ -113,5 +113,8 @@ class Dictionary(object):
     #     s = construct_dictionary(res)
     #     return s
 
+    def is_in_med_words(self, find_word):
+        return find_word in self.total_med_all_words
+
     def is_in_total_all_words(self, find_word):
         return find_word in self.total_all_words

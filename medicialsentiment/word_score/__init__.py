@@ -13,9 +13,19 @@ class WordScore(object):
         if not self.__change:
             self.__change = True
             self.__score = -self.__score
+            logging.debug("%s change score to %f", self.__word, self.__score)
             return True
         else:
             logging.warning("%s doesn't change score, beacuse it has been change", self.__word)
+            return False
+
+    def lock_score(self) -> bool:
+        if not self.__change:
+            self.__change = True
+            logging.debug("%s score is %f and lock.", self.__word, self.__score)
+            return True
+        else:
+            logging.warning("%s has been locked.", self.__word)
             return False
 
     def has_change(self):

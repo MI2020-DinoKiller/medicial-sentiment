@@ -1,7 +1,9 @@
 import logging
+import math
 
 from ..dictionary import Dictionary
 from ..word_score import WordScore
+from .find_word import FindWord
 
 
 def word_distance(st, ed, target) -> float:
@@ -70,7 +72,7 @@ class Sent(object):
         while counter < len_limit:
             char = query_string[counter]
             substring += char
-            res = set(filter(lambda x: substring in x, self.myDict.total_med_all_words))
+            res = set(filter(lambda x: x.startswith(substring), self.myDict.total_med_all_words))
             if res:
                 prev_substring = substring
                 prev_res = res.copy()
@@ -83,6 +85,8 @@ class Sent(object):
                 prev_substring = ""
                 prev_res = set()
             counter += 1
+        if prev_substring != "" and prev_substring in prev_res:
+            self.except_med_words.add(prev_substring)
         return
 
     def judge_sentences(self, sentences: [str], idf_dict: dict, idf_in_sentences_location: [list], idf_sum: float):
@@ -97,77 +101,84 @@ class Sent(object):
     def judge_sentence(self, sentence: str, idf_dict: dict, idf_in_sentence_location: [int], idf_sum: float) -> float:
         if sentence is None or idf_in_sentence_location is None:
             return 0.0
-        start_char_index = 0  # 初始化字詞抓取位置
-        score = 0.0  # 句子分數初始化
+        start_char_index = 0
+        score = 0.0
         words_in_sentence_index: [WordScore] = []
-        prev_substring = ""
         substring = ""
-        prev_res = set()
-        logging.info("Now Sentence is %s:", sentence)
-        counter = 0  # 目前 Index 位置
-        len_limit = len(sentence)  # Sentence 長度
+        find_word = FindWord()
+        logging.info("Now Sentence is %s", sentence)
+        counter = 0
+        len_limit = len(sentence)
         while counter < len_limit:
             char = sentence[counter]
-            if char == '?' or char == '？':  # 標點符號判斷：問句
+            if char in {'?', '？'}:
                 substring = ""
-                prev_substring = ""
-                prev_res = set()
+                find_word.clear_all()
                 words_in_sentence_index.clear()
+                logging.info("Question Mark, clean find_word")
                 counter += 1
-            elif char == '。' or char == '，' or char == '！' or char == '!' or char == ',':  # 標點符號，代表一句話結束
-                substring = ""
-                if prev_substring != "" and prev_substring in prev_res:
-                    delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
-                                                   counter, idf_in_sentence_location)  # 將剛剛結果的詞作分數計算
-                    # if len(words_in_sentence_index) >= 1:
-                    #     take_tuple = words_in_sentence_index[-1]
-                    #     if start_char_index - take_tuple[1] <= self.distance:
-                    #         if delta < 0 and take_tuple[2] < 0:  # - -
-                    #             delta = -delta
-                    #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                    #         elif delta > 0 and take_tuple[2] < 0:  # + -
-                    #             delta = -delta
-                    #         elif delta < 0 and take_tuple[2] > 0:
-                    #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                    # words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
-                    words_in_sentence_index.append(WordScore(start_char_index, counter, prev_substring, delta))
-                prev_substring = ""
-                prev_res = set()
-                score += self.scoring_tmp_score(words_in_sentence_index)
-                counter += 1
-                words_in_sentence_index.clear()
                 start_char_index = counter
+            elif char in {'。', '，', '！', '!', ','}:
+                substring = ""
+                found = ""
+                if not find_word.is_empty():
+                    found = find_word.recall()
+                    delta = self.single_word_score(sentence, found, idf_dict, idf_sum, start_char_index,
+                                                   start_char_index + len(found), idf_in_sentence_location)
+                    this_word = WordScore(start_char_index, start_char_index + len(found), found,
+                                          delta, self.myDict.is_in_med_words(found))
+                    if len(words_in_sentence_index) >= 1:
+                        take_tuple = words_in_sentence_index[-1]
+                        if not take_tuple.has_change() and not this_word.has_change():
+                            if start_char_index - take_tuple.get_end_index() + 1 <= self.distance:
+                                if delta < 0 and take_tuple.get_score() < 0:  # - -
+                                    this_word.change_score()
+                                    words_in_sentence_index[-1].change_score()
+                                elif delta > 0 and take_tuple.get_score() < 0:  # + -
+                                    this_word.change_score()
+                                elif delta < 0 and take_tuple.get_score() > 0:
+                                    words_in_sentence_index[-1].change_score()
+                                    this_word.lock_score()
+                    words_in_sentence_index.append(this_word)
+                score += self.scoring_tmp_score(words_in_sentence_index)
+                find_word.clear_all()
+                words_in_sentence_index.clear()
+                counter = start_char_index + len(found) + 1
+                start_char_index = start_char_index + len(found) + 1
             else:  # 如果不是碰到標點符號
                 substring += char
-                res = set(filter(lambda x: substring in x, self.myDict.total_all_words))
+                res = set(filter(lambda x: x.startswith(substring), self.myDict.total_all_words))
                 logging.debug("Now Substring %s", substring)
                 if res:
                     logging.debug("Result %s", res.__str__())
-                    prev_substring = substring
-                    prev_res = res.copy()
+                    find_word.append(substring, res)
                     counter += 1
                 else:
-                    if prev_substring != "" and prev_substring in prev_res:
-                        delta = self.single_word_score(sentence, prev_substring, idf_dict, idf_sum, start_char_index,
-                                                       counter, idf_in_sentence_location)
-                        # if len(words_in_sentence_index) >= 1:
-                        #     take_tuple = words_in_sentence_index[-1]
-                        #     if start_char_index - take_tuple[1] <= self.distance:
-                        #         if delta < 0 and take_tuple[2] < 0:  # - -
-                        #             delta = -delta
-                        #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                        #         elif delta > 0 and take_tuple[2] < 0:  # + -
-                        #             delta = -delta
-                        #         elif delta < 0 and take_tuple[2] > 0:
-                        #             words_in_sentence_index[-1][2] = -words_in_sentence_index[-1][2]
-                        # words_in_sentence_index.append([start_char_index, counter, delta, prev_substring])
-                        words_in_sentence_index.append(WordScore(start_char_index, counter, prev_substring, delta))
-                        counter = start_char_index + len(prev_substring) - 1
+                    found = ""
+                    if not find_word.is_empty():
+                        found = find_word.recall()
+                        delta = self.single_word_score(sentence, found, idf_dict, idf_sum, start_char_index,
+                                                       start_char_index + len(found), idf_in_sentence_location)
+                        this_word = WordScore(start_char_index, start_char_index + len(found), found,
+                                              delta, self.myDict.is_in_med_words(found))
+                        if len(words_in_sentence_index) >= 1:
+                            take_tuple = words_in_sentence_index[-1]
+                            if not take_tuple.has_change() and not this_word.has_change():
+                                if start_char_index - take_tuple.get_end_index() + 1 <= self.distance:
+                                    if delta < 0 and take_tuple.get_score() < 0:  # - -
+                                        this_word.change_score()
+                                        words_in_sentence_index[-1].change_score()
+                                    elif delta > 0 and take_tuple.get_score() < 0:  # + -
+                                        this_word.change_score()
+                                    elif delta < 0 and take_tuple.get_score() > 0:
+                                        words_in_sentence_index[-1].change_score()
+                                        this_word.lock_score()
+                        words_in_sentence_index.append(this_word)
+                        counter = start_char_index + len(found) - 1
                     elif len(substring) >= 1:
                         counter = start_char_index
                     substring = ""
-                    prev_substring = ""
-                    prev_res = set()
+                    find_word.clear_all()
                     counter += 1
                     start_char_index = counter
         score += self.scoring_tmp_score(words_in_sentence_index)
@@ -178,8 +189,6 @@ class Sent(object):
         for element in words_in_sentence_index:
             logging.info("%s, %f", element.get_word(), element.get_score())
             total += element.get_score()
-            # logging.info("%s, %f", element[3], element[2])
-            # total += element[2]
         return total
 
     def single_word_score(self, sentence: str, prev_substring: str, idf_dict: dict, idf_sum: float,
@@ -192,11 +201,15 @@ class Sent(object):
         distances = []
         for i in idf_in_sentence_location:
             this_word_score = idf_dict[sentence[i]] / idf_sum
+            this_word_score *= this_word_score  # IDF 平方
             distances.append(word_distance(start_char_index, counter, i))
+            # this_word_score /= math.sqrt(word_distance(start_char_index, counter, i))
             this_word_score /= word_distance(start_char_index, counter, i)
+            # this_word_score /= word_distance(start_char_index, counter, i)
+            logging.debug("%s -> %s TO %f", prev_substring, sentence[i], this_word_score)
             delta += this_word_score
         logging.debug("Distances: %s", distances.__str__())
         delta /= len(idf_in_sentence_location)
         delta *= self.myDict.dictionaryScore[prev_substring]
-
+        logging.debug("%s score is %f", prev_substring, delta)
         return delta
