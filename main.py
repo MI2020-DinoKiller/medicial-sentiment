@@ -62,18 +62,19 @@ def callback(ch, method, properties, body):
     content = obj["content"]
     ret = sent.judge_sent(query_string=query_string, sentences=sentences, idf_words=idf_words,
                           idf_dict=idf_dict, idf_sum=idf_sum)
+    # ret2 = copeopi.getOpinionScoreAllContent(obj["sentence"])
     if sentences is not None and sentences != []:
-        print(ret["score"])
-        print(obj["url"])
-        for counter, sentence in enumerate(sentences):
-            print(ret["each_score"][counter], ":", sentence)
-        print()
-        print("=" * 10)
-        print()
+        # print(ret["score"], ret2["score"])
+        # print(obj["url"])
+        # for counter, sentence in enumerate(sentences):
+        #     print(ret["each_score"][counter], ":", sentence)
+        # print()
+        # print("=" * 10)
+        # print()
         obj["sentence"], ret["each_score"] = content_cut_from_sentence(content, obj["sentence"], ret["each_score"])
-        print(content)
-        for counter, sentence in enumerate(obj["sentence"]):
-            print(ret["each_score"][counter], ":", sentence)
+        # print(content)
+        # for counter, sentence in enumerate(obj["sentence"]):
+        #     print(ret["each_score"][counter], ":", sentence)
         database.insert_search_result_score(obj['search_id'], obj["url"], obj["title"],
                                             ret["score"], obj["sentence"], ret["each_score"])
 
