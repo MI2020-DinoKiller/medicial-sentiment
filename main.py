@@ -5,9 +5,9 @@ import time
 import logging
 import pika
 from medicialsentiment.sent import Sent
-from medicialsentiment.copeopi import CopeOpi
+# from medicialsentiment.copeopi import CopeOpi
 from medicialsentiment.sqlconnect import SQLConnect
-from ckiptagger import data_utils, WS, POS, NER
+# from ckiptagger import data_utils, WS, POS, NER
 from medicialsentiment.utils import content_cut_from_sentence
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
