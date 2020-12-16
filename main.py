@@ -60,6 +60,7 @@ def callback(ch, method, properties, body):
     idf_words = set(obj["idf_words"])
     idf_sum = float(obj["idf_sum"])
     content = obj["content"]
+    is_finished = obj["is_finished"]
     ret = sent.judge_sent(query_string=query_string, sentences=sentences, idf_words=idf_words,
                           idf_dict=idf_dict, idf_sum=idf_sum)
     # ret2 = copeopi.getOpinionScoreAllContent(obj["sentence"])
@@ -76,7 +77,7 @@ def callback(ch, method, properties, body):
         # for counter, sentence in enumerate(obj["sentence"]):
         #     print(ret["each_score"][counter], ":", sentence)
         database.insert_search_result_score(obj['search_id'], obj["url"], obj["title"],
-                                            ret["score"], obj["sentence"], ret["each_score"])
+                                            ret["score"], obj["sentence"], ret["each_score"], is_finished)
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 

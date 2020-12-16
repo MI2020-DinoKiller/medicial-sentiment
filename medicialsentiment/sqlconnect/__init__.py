@@ -39,7 +39,7 @@ class SQLConnect(object):
                 return white["WhiteListId"]
         return 0
 
-    def insert_search_result_score(self, search_id, link, title, result_score, sentences, sentences_score):
+    def insert_search_result_score(self, search_id, link, title, result_score, sentences, sentences_score, is_finished):
         with self.__connection.cursor() as cursor:
             # Create a new record
             w_id = self.get_white_list_id(link)
@@ -50,4 +50,7 @@ class SQLConnect(object):
             for counter, element in enumerate(sentences):
                 sql2 = "INSERT INTO `sentence` (`search_result_id`, `sentences`, `sentence_grade`) VALUES (%s, %s, %s)"
                 cursor.execute(sql2, (result_id, element, sentences_score[counter]))
+
+            sql3 = "UPDATE `search` SET `hasFinish` = '1' WHERE `search`.`SearchId` = %s;"
+            cursor.execute(sql3, (result_id))
         self.__connection.commit()
