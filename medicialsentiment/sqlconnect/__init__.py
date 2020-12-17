@@ -51,6 +51,12 @@ class SQLConnect(object):
                 sql2 = "INSERT INTO `sentence` (`search_result_id`, `sentences`, `sentence_grade`) VALUES (%s, %s, %s)"
                 cursor.execute(sql2, (result_id, element, sentences_score[counter]))
 
+            if is_finished:
+                self.lock_search_id(search_id)
+        self.__connection.commit()
+
+    def lock_search_id(self, search_id):
+        with self.__connection.cursor() as cursor:
             sql3 = "UPDATE `search` SET `hasFinish` = '1' WHERE `search`.`SearchId` = %s;"
-            cursor.execute(sql3, (result_id))
+            cursor.execute(sql3, (search_id))
         self.__connection.commit()

@@ -78,6 +78,8 @@ def callback(ch, method, properties, body):
         #     print(ret["each_score"][counter], ":", sentence)
         database.insert_search_result_score(obj['search_id'], obj["url"], obj["title"],
                                             ret["score"], obj["sentence"], ret["each_score"], is_finished)
+    elif is_finished:
+        database.lock_search_id(obj['search_id'])
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
